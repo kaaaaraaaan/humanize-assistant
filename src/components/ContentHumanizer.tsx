@@ -3,11 +3,13 @@ import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 
 export const ContentHumanizer = () => {
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
+  const [apiKey, setApiKey] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const maxChars = 2000;
@@ -22,25 +24,46 @@ export const ContentHumanizer = () => {
       return;
     }
 
+    if (!apiKey.trim()) {
+      toast({
+        title: "API Key Required",
+        description: "Please enter your DeepSeek API key.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
-      const response = await fetch(
-        "https://lovable.functions.supabase.co/humanize",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: input }),
-        }
-      );
+      const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: "deepseek-chat",
+          messages: [
+            {
+              role: "system",
+              content: "You are a helpful assistant that humanizes text to make it more natural and conversational while maintaining the original meaning."
+            },
+            {
+              role: "user",
+              content: `Please humanize this text to make it more natural and conversational: ${input}`
+            }
+          ]
+        })
+      });
 
       if (!response.ok) throw new Error("Failed to humanize content");
 
       const data = await response.json();
-      setOutput(data.humanizedText);
+      setOutput(data.choices[0].message.content);
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to humanize the content. Please try again.",
+        description: "Failed to humanize the content. Please check your API key and try again.",
         variant: "destructive",
       });
     } finally {
@@ -50,6 +73,21 @@ export const ContentHumanizer = () => {
 
   return (
     <div className="w-full max-w-3xl mx-auto space-y-8 animate-fade-in">
+      <div className="space-y-2">
+        <div className="flex justify-between items-center">
+          <label className="text-sm font-medium text-muted-foreground">
+            DeepSeek API Key
+          </label>
+        </div>
+        <Input
+          type="password"
+          value={apiKey}
+          onChange={(e) => setApiKey(e.target.value)}
+          placeholder="Enter your DeepSeek API key..."
+          className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+        />
+      </div>
+
       <div className="space-y-2">
         <div className="flex justify-between items-center">
           <label className="text-sm font-medium text-muted-foreground">
@@ -70,7 +108,7 @@ export const ContentHumanizer = () => {
       <div className="flex justify-center">
         <Button
           onClick={handleHumanize}
-          disabled={isLoading || !input.trim()}
+          disabled={isLoading || !input.trim() || !apiKey.trim()}
           className="px-8 py-6 text-lg transition-all duration-200 hover:scale-105"
         >
           {isLoading ? (
