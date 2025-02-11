@@ -24,11 +24,14 @@ export const ContentHumanizer = () => {
 
     setIsLoading(true);
     try {
-      const response = await fetch("/api/humanize", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: input }),
-      });
+      const response = await fetch(
+        "https://lovable.functions.supabase.co/humanize",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: input }),
+        }
+      );
 
       if (!response.ok) throw new Error("Failed to humanize content");
 
