@@ -46,11 +46,11 @@ export const ContentHumanizer = () => {
           messages: [
             {
               role: "system",
-              content: "You are a helpful assistant that humanizes text to make it more natural and conversational while maintaining the original meaning."
+              content: "You are a writing assistant. Your task is to rephrase text in a way that feels completely natural and human-written. Follow these guidelines: 1) Use casual, conversational language 2) Vary sentence structures and lengths 3) Include natural transitions between ideas 4) Add appropriate filler words and phrases that humans commonly use 5) Maintain the original meaning and key points 6) Avoid overly perfect grammar or academic tone 7) Use contractions and informal expressions where appropriate. Most importantly, make the text flow naturally as if written by a real person."
             },
             {
               role: "user",
-              content: `Please humanize this text to make it more natural and conversational: ${input}`
+              content: `Please modify this text to sound completely natural and human-written while keeping the same meaning: ${input}`
             }
           ]
         })
