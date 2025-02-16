@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -24,10 +23,12 @@ export const ContentHumanizer = () => {
       return;
     }
 
-    if (!apiKey.trim()) {
+    const effectiveApiKey = import.meta.env.VITE_DEEPSEEK_API_KEY || apiKey.trim();
+
+    if (!effectiveApiKey) {
       toast({
         title: "API Key Required",
-        description: "Please enter your DeepSeek API key.",
+        description: "Please either set VITE_DEEPSEEK_API_KEY in your environment or enter your DeepSeek API key below.",
         variant: "destructive",
       });
       return;
@@ -39,18 +40,29 @@ export const ContentHumanizer = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${apiKey}`
+          "Authorization": `Bearer ${effectiveApiKey}`
         },
         body: JSON.stringify({
           model: "deepseek-chat",
           messages: [
             {
               role: "system",
-              content: "You are a writing assistant. Your task is to rephrase text in a way that feels completely natural and human-written. Follow these guidelines: 1) Use casual, conversational language 2) Vary sentence structures and lengths 3) Include natural transitions between ideas 4) Add appropriate filler words and phrases that humans commonly use 5) Maintain the original meaning and key points 6) Avoid overly perfect grammar or academic tone 7) Use contractions and informal expressions where appropriate. Most importantly, make the text flow naturally as if written by a real person."
-            },
-            {
-              role: "user",
-              content: `Please modify this text to sound completely natural and human-written while keeping the same meaning: ${input}`
+              content: `When writing, follow these writing guidelines:
+
+Don't blab.
+Keep sentences brief and clear. Limit to 10-20 words.
+Use everyday words that are easy to understand.
+Pick common words over complex ones. Use technical terms only when needed.
+Avoid words with 4+ syllables. If you must use them, keep surrounding text simple.
+Write for a 8th grade reading level.
+Skip overused business terms and jargon like: delve, digital age, cutting-edge, leverage, proactive, pivotal, seamless, fast-paced, game-changer, quest, realm, landscape, evolve, resilient, thrill, unravel, embark, world.
+Make direct statements without hedging.
+Connect ideas naturally without forced transitions.
+Use standard punctuation.
+Vary sentence structure and punctuation naturally.
+Never use: indeed, furthermore, thus, moreover, notwithstanding, ostensibly, consequently, specifically, notably, alternatively.
+
+Please rewrite the following text using these guidelines: ${input}`
             }
           ]
         })
@@ -76,14 +88,14 @@ export const ContentHumanizer = () => {
       <div className="space-y-2">
         <div className="flex justify-between items-center">
           <label className="text-sm font-medium text-muted-foreground">
-            DeepSeek API Key
+            DeepSeek API Key (Optional if set in environment)
           </label>
         </div>
         <Input
           type="password"
           value={apiKey}
           onChange={(e) => setApiKey(e.target.value)}
-          placeholder="Enter your DeepSeek API key..."
+          placeholder="Enter your DeepSeek API key (not needed if set in environment)..."
           className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
         />
       </div>
@@ -108,7 +120,7 @@ export const ContentHumanizer = () => {
       <div className="flex justify-center">
         <Button
           onClick={handleHumanize}
-          disabled={isLoading || !input.trim() || !apiKey.trim()}
+          disabled={isLoading || !input.trim() || (!apiKey.trim() && !import.meta.env.VITE_DEEPSEEK_API_KEY)}
           className="px-8 py-6 text-lg transition-all duration-200 hover:scale-105"
         >
           {isLoading ? (
